@@ -38,7 +38,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Indexa todos los archivos de texto de un directorio.
@@ -93,6 +99,15 @@ public class IndexFiles {
                     + "\n with message: " + e.getMessage());
         }
     }
+    
+    public CharSequence fromFile(FileInputStream input) throws IOException {
+        FileChannel channel = input.getChannel();
+    
+        // Create a read-only CharBuffer on the file
+        ByteBuffer bbuf = channel.map(FileChannel.MapMode.READ_ONLY, 0, (int)channel.size());
+        CharBuffer cbuf = Charset.forName("8859_1").newDecoder().decode(bbuf);
+        return cbuf;
+    }
 
     /**
      * Indexa el archivo <i>file</i> dado utilizando el IndexWritter dado. Si
@@ -129,6 +144,43 @@ public class IndexFiles {
                 }
 
                 try {
+                	CharSequence movieContent = fromFile(fis);
+                	
+                	Pattern actorsPattern = Pattern.compile("<[^>\"]+?\"castactor\"[^>]+?>([^<]+)</td>");
+                	Pattern directorPattern = Pattern.compile(">Director</td>[\n\r]*.+?fieldvalue\">([^<]+)</td>");
+                	Pattern genrePattern = Pattern.compile("</div>[\n\r ]*<span class=\"fieldvaluelarge\">([^<]+)</span>");
+                	
+                	Matcher actorsMatcher = actorsPattern.matcher(movieContent);
+                	Matcher directorMatcher = directorPattern.matcher(movieContent);
+                	Matcher genreMatcher = genrePattern.matcher(movieContent);
+                	
+                	String actors = "";
+                	String director = "";
+                	String genres = "";
+                	
+                	//Extraigo actores
+                	while (actorsMatcher.find()) {
+                		if(actors.isEmpty()){
+                			actors = actorsMatcher.group(1);
+                		}
+                		else{
+                			actors = actors + ", " + actorsMatcher.group(1);
+                		}
+            		}
+                	
+                	//Extraigo el director
+                	while (directorMatcher.find()) {
+                		if(director.isEmpty()){
+                			director = directorMatcher.group(1);
+                		}
+            		}
+                	
+                	//Extraigo la lista de generos
+                	while (genreMatcher.find()) {
+                		if(genres.isEmpty()){
+                			genres = genreMatcher.group(1);
+                		}
+            		}                	
 
                     // crear un nuevo documento vacío
                     Document doc = new Document();
@@ -164,6 +216,9 @@ public class IndexFiles {
 							txt.setBoost(new Float(1.5));
 						}
 						
+						doc.add(new TextField("actors", new BufferedReader(new InputStreamReader(new ByteArrayInputStream(actors.getBytes())))));
+						doc.add(new TextField("director", new BufferedReader(new InputStreamReader(new ByteArrayInputStream(director.getBytes())))));
+						doc.add(new TextField("genres", new BufferedReader(new InputStreamReader(new ByteArrayInputStream(genres.getBytes())))));
 						doc.add(txt);
 						
 					} catch (SAXException e) {
