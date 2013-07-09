@@ -1,0 +1,218 @@
+body {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8pt;
+	color: #ffffff;
+  background-color: #046688;
+	margin: 10px 10px 10px 10px;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+a:link, a:visited {
+	text-decoration: none;
+	color: #ffffff;
+} 
+
+a:hover {
+	text-decoration: none;
+	color: #FDDB2B;
+}
+
+.header {
+	font-size: 11pt;	
+	font-weight : bold;
+	padding-bottom: 3px;
+	color: #FDDB2B;
+}
+
+#topbar {
+	font-size: 14pt;
+	font-weight : bold;
+	margin-bottom: 10px;
+}
+
+#movietitle {
+	font-size: 18pt;
+	font-weight : bold;
+	color: #FDDB2B;
+}
+
+#runtime {
+	font-style: italic;
+	font-size: 8pt;
+}
+
+#imdbrating {
+	font-size: 10pt;
+	color: #FDDB2B;
+	font-style: italic;
+}
+
+#boxset {
+	
+}
+
+#boxsetcover {
+	float: left;
+	margin-left: 0px;
+	margin-right: 10px;
+	margin-top: 0px;
+	width: 50px;
+}
+
+#boxsetcover img.coverimage {
+	width: 50px;	
+	border: none;
+}
+
+#frontcover {
+	float: left;
+	clear: left;
+	margin-left: 0px;
+	margin-right: 10px;
+	margin-top: 0px;
+	margin-bottom: 10px;
+	width: 150px;
+}
+
+#backcover {
+	float: left;
+	clear: left;
+	margin-left: 0px;
+	margin-right: 10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	width: 150px;
+}
+
+img.coverimage {
+	width : 150px;	
+	border: none;
+}
+
+#episodes {
+	float: left;
+	clear: left;
+	margin-left: 0px;
+	margin-right: 10px;
+	margin-top: 0px;
+	margin-bottom: 10px;
+	width: 200px;
+}
+
+#personalmain {
+	float: right;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	padding-bottom: 5px;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-top: 5px;
+	text-align: center;
+	border: 1px solid White;
+}
+
+#indexvalue {
+	font-size: 14pt;
+	font-weight : bold;
+}
+
+#editiondetails {
+	float: left;
+	margin-right: 20px;
+	margin-top: 0px;
+	margin-bottom: 10px;
+}
+
+#personaldetails {
+	float: left;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-top: 0px;
+	margin-bottom: 10px;  
+}
+
+#imagefiles {
+	clear: both;
+}
+
+img.imagefile {
+	height : 150px;	
+	border: none;
+}
+
+#features {
+	clear: left;
+}
+
+#notes {
+	clear: left;
+}
+
+.fieldvaluelarge {
+	font-size: 10pt;
+	font-weight : bold;
+	color: White;
+}
+
+.fieldlabel {
+	font-size: 8pt;
+	padding-top: 1px;
+	padding-bottom: 1px;
+}
+
+.fieldvalue {
+	font-size: 8pt;
+	font-weight : bold;
+	padding-top: 1px;
+	padding-bottom: 1px;
+	padding-left: 5px;
+}
+
+.episodetitle {
+	font-size: 7pt;
+	font-weight : normal;
+}
+
+.castactor {
+	font-size: 10pt;
+	font-weight : bold;
+}
+
+.castcharacter {
+	font-size: 8pt;
+	font-style: italic;
+	padding-left: 5px;
+}
+
+.searchresult {
+  color: Black;
+  background-color: #FFFF93;
+}
+
+.navigation {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.navlink {
+  padding-left: 20px;
+  padding-right: 20px;
+  text-align: center;
+  display: inline;
+	color: White;	
+	font-size: 8pt;
+	font-weight : bold;
+}
+
+.navlink a {
+	color: White;	
+	font-size: 8pt;
+	font-weight : bold;
+}
+
+.navlink a:hover {
+	color: #FDDB2B;
+}
