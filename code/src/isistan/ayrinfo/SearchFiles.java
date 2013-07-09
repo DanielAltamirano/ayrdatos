@@ -6,10 +6,15 @@ package isistan.ayrinfo;
  * @author Marcelo Armentano
  */
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -93,9 +98,19 @@ public class SearchFiles {
 
             Document doc = searcher.doc(hits[i].doc);
             String path = doc.get("path");
+            String title = doc.get("title");
+            
+            ImageIcon imgIcon = new ImageIcon(MovieSearch.class.getResource("movie.png"));
+            
+            if(doc.getBinaryValue("coverImg") != null){
+            	byte[] img = doc.getBinaryValue("coverImg").bytes;
+    			BufferedImage bImageFromConvert = ImageIO.read(new ByteArrayInputStream(img));
+    			imgIcon = new ImageIcon(bImageFromConvert);
+            }
+            
             if (path==null)
                 path="";
-             app.newResult(score, path);
+             app.newResult(title, imgIcon, score, path);
         }
 
     }

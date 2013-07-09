@@ -12,24 +12,30 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
+
 import java.awt.BorderLayout;
+
 import javax.swing.JPanel;
 import javax.swing.ImageIcon;
 import javax.swing.JTextField;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JRadioButton;
+
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.RowSpec;
 import com.jgoodies.forms.factories.FormFactory;
+
 import javax.swing.ButtonGroup;
 import javax.swing.JScrollPane;
+
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.net.URL;
 import java.awt.Toolkit;
+
 import javax.swing.JTextArea;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
@@ -39,6 +45,7 @@ import javax.swing.table.TableColumn;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 
 public class MovieSearch {
 
@@ -277,7 +284,11 @@ public class MovieSearch {
             public boolean isCellEditable(int rowIndex, int colIndex) {
                 return false;   //Disallow the editing of any cell
             }
+            public Class getColumnClass(int column){
+            	return getValueAt(0, column).getClass();
+            }
         };
+
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -293,18 +304,24 @@ public class MovieSearch {
             new Object[][] {
             },
             new String[] {
-                "Score", "Path"
+                "Title", "Cover", "Score", "Path"
             }
         ));
         TableColumn column = null;
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 3; i++) {
             column = table.getColumnModel().getColumn(i);
+            
             if (i == 1) {
+                column.setPreferredWidth(210); //third column is bigger
+            }
+            if (i == 2) {
                 column.setPreferredWidth(10); //third column is bigger
             } else {
                 column.setPreferredWidth(3);
             }
         }
+        table.setRowHeight(300);
+        
         scrollPane.setViewportView(table);
         
         statusLabel = new JLabel("");
@@ -453,8 +470,8 @@ protected void showIndexingConfirmDialog() {
         indexLog.append("\n"+textToLog);
     }
     
-    public void newResult(double score, String path){
-        ((DefaultTableModel) table.getModel()).addRow(new Object[] {score,path});
+    public void newResult(String title, ImageIcon cover, double score, String path){
+        ((DefaultTableModel) table.getModel()).addRow(new Object[] {title, cover, score, path});
     }
     
     public void setStatus(String status){

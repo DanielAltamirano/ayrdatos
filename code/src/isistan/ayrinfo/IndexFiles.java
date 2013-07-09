@@ -5,11 +5,15 @@ package isistan.ayrinfo;
  * @author Marcelo Armentano
  */
 
+import javax.imageio.*;
+
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
@@ -30,8 +34,10 @@ import org.apache.tika.sax.ToHTMLContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -128,6 +134,9 @@ public class IndexFiles {
         if (file.canRead()) {
             // Si es un directorio, llamado recursivo
             if (file.isDirectory()) {
+            	if(file.getName().contains("images")){
+            		return;
+            	}
                 String[] files = file.list();
                 if (files != null) {
                     for (int i = 0; i < files.length; i++) {
@@ -136,6 +145,11 @@ public class IndexFiles {
                 }
             } else {
                 // Es un archivo
+            	
+            	if(!file.getName().endsWith("html")){
+            		return;
+            	}
+            	
                 FileInputStream fis;
                 try {
                     fis = new FileInputStream(file);
@@ -146,17 +160,33 @@ public class IndexFiles {
                 try {
                 	CharSequence movieContent = fromFile(fis);
                 	
+                	movieContent = StringEscapeUtils.unescapeHtml4(movieContent.toString());
+                	
                 	Pattern actorsPattern = Pattern.compile("<[^>\"]+?\"castactor\"[^>]+?>([^<]+)</td>");
                 	Pattern directorPattern = Pattern.compile(">Director</td>[\n\r]*.+?fieldvalue\">([^<]+)</td>");
                 	Pattern genrePattern = Pattern.compile("</div>[\n\r ]*<span class=\"fieldvaluelarge\">([^<]+)</span>");
+                	
+                	Pattern titlePattern = Pattern.compile("<span id=\"movietitle\">([^<]+)</span>");
+                	Pattern coverPattern = Pattern.compile("<div id=\"frontcover\">(?:.|[\r\n])*?<img src=\"[^<>]*?images/(.+?)\" class=\"coverimage\"/>");
+                	Pattern imdbRatingPattern = Pattern.compile("id=\"imdbrating\">(.+?)</span>");
+                	Pattern imdbLinkPattern = Pattern.compile("<a href=\"(.+?)\">IMDB");
                 	
                 	Matcher actorsMatcher = actorsPattern.matcher(movieContent);
                 	Matcher directorMatcher = directorPattern.matcher(movieContent);
                 	Matcher genreMatcher = genrePattern.matcher(movieContent);
                 	
+                	Matcher titleMatcher = titlePattern.matcher(movieContent);
+                	Matcher coverMatcher = coverPattern.matcher(movieContent);
+                	Matcher imdbRatingMatcher = imdbRatingPattern.matcher(movieContent);
+                	Matcher imdbLinkMatcher = imdbLinkPattern.matcher(movieContent);
+                	
                 	String actors = "";
                 	String director = "";
                 	String genres = "";
+                	String title = "";
+                	String coverUrl = "";
+                	String imdbRating = "";
+                	String imdbLink = "";
                 	
                 	//Extraigo actores
                 	while (actorsMatcher.find()) {
@@ -180,7 +210,35 @@ public class IndexFiles {
                 		if(genres.isEmpty()){
                 			genres = genreMatcher.group(1);
                 		}
-            		}                	
+            		}
+                	
+                	//Extraigo el titulo
+                	while (titleMatcher.find()) {
+                		if(title.isEmpty()){
+                			title = titleMatcher.group(1);
+                		}
+            		}
+                	
+                	//Extraigo la URL del cover
+                	while (coverMatcher.find()) {
+                		if(coverUrl.isEmpty()){
+                			coverUrl = coverMatcher.group(1);
+                		}
+            		}
+                	
+                	//Extraigo el rating de IMDB
+                	while (imdbRatingMatcher.find()) {
+                		if(imdbRating.isEmpty()){
+                			imdbRating = imdbRatingMatcher.group(1);
+                		}
+            		}
+                	
+                	//Extraigo el link a IMDB
+                	while (imdbLinkMatcher.find()) {
+                		if(imdbLink.isEmpty()){
+                			imdbLink = imdbLinkMatcher.group(1);
+                		}
+            		}
 
                     // crear un nuevo documento vacío
                     Document doc = new Document();
@@ -190,8 +248,45 @@ public class IndexFiles {
                     // analizado
                     Field pathField = new StringField("path", file.getPath(),
                             Field.Store.YES);
+                    Field actorsField = new StringField("actors", actors, Field.Store.YES);
+                    Field directorField = new StringField("director", director, Field.Store.YES);
+                    Field genresField = new StringField("genres", genres, Field.Store.YES);
+                    Field titleField = new StringField("title", title, Field.Store.YES);
+                    Field coverUrlField = new StringField("coverUrl", coverUrl, Field.Store.YES);
+                    Field imdbRatingField = new StringField("imdbRating", imdbRating, Field.Store.YES);
+                    Field imdbLinkField = new StringField("imdbLink", imdbLink, Field.Store.YES);
+                    
                     doc.add(pathField);
-
+                    doc.add(actorsField);
+                    doc.add(directorField);
+                    doc.add(genresField);
+                    doc.add(titleField);
+                    doc.add(coverUrlField);
+                    doc.add(imdbRatingField);
+                    doc.add(imdbLinkField);
+                    
+                    try {
+                    	String coverImg = file.getParentFile().getPath() + "\\images\\" + coverUrl;
+                    	File coverFile = new File(coverImg);
+                    	
+                    	if(coverFile.exists()){
+                    		
+                    		BufferedImage coverImgFile;
+                    		coverImgFile = ImageIO.read(new File(coverImg));
+                        	
+                        	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            ImageIO.write(coverImgFile, "jpg", baos);
+                            baos.flush();
+                            byte[] imageInByte = baos.toByteArray();
+                            baos.close();
+                            
+                            Field coverImgField = new StoredField("coverImg", imageInByte);
+                            
+                            doc.add(coverImgField);
+                    	}
+                    } catch (IOException e) {
+                    }
+                    
                     // Agrega la fecha de última modificación como campo
                     // "modified"
                     //doc.add(new StringField("modified",
@@ -219,6 +314,10 @@ public class IndexFiles {
 						doc.add(new TextField("actors", new BufferedReader(new InputStreamReader(new ByteArrayInputStream(actors.getBytes())))));
 						doc.add(new TextField("director", new BufferedReader(new InputStreamReader(new ByteArrayInputStream(director.getBytes())))));
 						doc.add(new TextField("genres", new BufferedReader(new InputStreamReader(new ByteArrayInputStream(genres.getBytes())))));
+						doc.add(new TextField("title", new BufferedReader(new InputStreamReader(new ByteArrayInputStream(title.getBytes())))));
+						doc.add(new TextField("coverUrl", new BufferedReader(new InputStreamReader(new ByteArrayInputStream(coverUrl.getBytes())))));
+						doc.add(new TextField("imdbRating", new BufferedReader(new InputStreamReader(new ByteArrayInputStream(imdbRating.getBytes())))));
+						doc.add(new TextField("imdbUrl", new BufferedReader(new InputStreamReader(new ByteArrayInputStream(imdbLink.getBytes())))));
 						doc.add(txt);
 						
 					} catch (SAXException e) {
